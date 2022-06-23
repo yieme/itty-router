@@ -15,9 +15,9 @@ function Router({ base = '', routes = {} } = {}) {
     }),
     routes,
     async handle (request, ...args) {
-      let response, match, url = new URL(request.url)
+      let methodRoutes, response, match, url = new URL(request.url)
       request.query = Object.fromEntries(url.searchParams)
-      let methodRoutes = routes[request.method] || routes.ALL || []
+      methodRoutes = routes[request.method] || routes.ALL || []
       for (let [route, handlers] of methodRoutes) {
         if ((match = url.pathname.match(route))) {
           request.params = match.groups
