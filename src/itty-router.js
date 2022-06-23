@@ -1,9 +1,8 @@
-function Router({ base = '', routes = [] } = {}) {
+function Router({ base = '', routes = {} } = {}) {
   return {
     __proto__: new Proxy({}, {
       get: (target, prop, receiver) => (route, ...handlers) =>
-        routes.push([
-          prop.toUpperCase(),
+        routes[prop.toUpperCase()].push([
           RegExp(`^${(base + route)
             .replace(/(\/?)\*/g, '($1.*)?')                             // trailing wildcard
             .replace(/\/$/, '')                                         // remove trailing slash
@@ -18,8 +17,9 @@ function Router({ base = '', routes = [] } = {}) {
     async handle (request, ...args) {
       let response, match, url = new URL(request.url)
       request.query = Object.fromEntries(url.searchParams)
-      for (let [method, route, handlers] of routes) {
-        if ((method === request.method || method === 'ALL') && (match = url.pathname.match(route))) {
+      let methodRoutes = routes[request.method] || routes.ALL || []
+      for (let [route, handlers] of methodRoutes) {
+        if ((match = url.pathname.match(route))) {
           request.params = match.groups
           for (let handler of handlers) {
             if ((response = await handler(request.proxy || request, ...args)) !== undefined) return response
